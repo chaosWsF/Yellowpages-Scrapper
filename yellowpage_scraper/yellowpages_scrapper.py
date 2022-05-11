@@ -2,18 +2,17 @@
 # -*- coding: utf-8 -*-
 
 import requests
-import json
 import time
-import unicodecsv as csv
 from lxml import html
+from unicodecsv import csv
 
 
 def parse_listing(url):
     """
     Function to process yellowpage listing page
-    : param url:
     """
-    print("retrieving ", url)
+
+    print("Retrieving ", url)
 
     headers = {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
@@ -25,16 +24,16 @@ def parse_listing(url):
         'Upgrade-Insecure-Requests': '1',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36'
     }
-    # Adding retries
-    for retry in range(5):
+    for retry in range(5):    # Adding retries
         try:
-            response = requests.get(url, verify=False, headers=headers)
-            print("parsing page")
+            response = requests.get(url, verify=False, headers=headers)    # FIXME warnings about verification
+            print("Parsing page")
+
             if response.status_code == 200:
                 parser = html.fromstring(response.text)
-                # making links absolute
+                
                 base_url = "https://www.yellowpages.ca"
-                parser.make_links_absolute(base_url)
+                parser.make_links_absolute(base_url)    # making links absolute
 
                 XPATH_LISTINGS = "//div[@class='resultList jsResultsList jsMLRContainer']//div[@class='listing__content__wrap--flexed jsGoToMp']"
                 listings = parser.xpath(XPATH_LISTINGS)
@@ -49,8 +48,8 @@ def parse_listing(url):
                     XPATH_REGION = ".//span[@itemprop='addressRegion']//text()"
                     XPATH_ZIP_CODE = ".//span[@itemprop='postalCode']//text()"
                     XPATH_CATEGORIES = ".//div[@class='listing__captext']//text()"
-                    XPATH_WEBSITE = ".//a[@class='mlr__item__cta']//@href"
-                    XPATH_RATING = ".//div[@class='listing__rating ratingWarp']//span//@data-rating"
+                    XPATH_WEBSITE = ".//a[@class='mlr__item__cta']//@href"    # TODO: get a redirect term
+                    XPATH_RATING = ".//div[@class='listing__rating ratingWarp']//span//@data-rating"    # TODO: two rating
 
                     raw_business_name = results.xpath(XPATH_BUSINESS_NAME)
                     raw_business_page = results.xpath(XPATH_BUSSINESS_PAGE)
@@ -70,7 +69,7 @@ def parse_listing(url):
                     locality = ''.join(raw_locality).strip() if raw_locality else None
                     region = ''.join(raw_region).strip() if raw_region else None
                     zipcode = ''.join(raw_zip_code).strip() if raw_zip_code else None
-                    category = ','.join(raw_categories).strip() if raw_categories else None
+                    category = ','.join(raw_categories).strip() if raw_categories else None    # TODO: standard for categories
                     website = ''.join(raw_website).strip() if raw_website else None
                     rating = ''.join(raw_rating).replace("rating", "").strip() if raw_rating else None
 
@@ -91,14 +90,13 @@ def parse_listing(url):
 
                 return scraped_results
 
-            elif response.status_code == 404:    # no need to retry for non existing page
-                print("Could not find a location matching")
+            elif response.status_code == 404:
+                print("No page exists")    # no need to retry for non existing page
                 return 
             else:
-                print(f"Failed to process page, response error, retry {retry+1}")
-
-        except:
-            print("Failed to process page")
+                print("Failed due to response error.", f"Retry {retry+1}")
+        except Exception as err:
+            print(err, "Failed to process page")
             return 
 
 
@@ -111,38 +109,39 @@ def helper(field: str) -> str:
 
 
 if __name__ == "__main__":
-    pagenum_upper = 100
+    pagenum_upper = 100    # 100-150 can be appropriate
 
     keyword = 'Restaurants'
     place = 'Edmonton AB'
     scraped_data = []
     for pagenum in range(1, pagenum_upper+1):
         if (pagenum > 9) and (pagenum % 10 == 0):
-            time.sleep(5)
+            time.sleep(5)    # FIXME find a good delay
         
         url = f"https://www.yellowpages.ca/search/si/{pagenum}/{helper(keyword)}/{helper(place)}"
         res = parse_listing(url)
         if res:
             scraped_data.extend(res)
         else:
+            print('Empty prased data')
             break
 
     output_file = f'{keyword}_{place}_yellowpages_scraped_data.csv'
+    fieldnames = [
+        'business_name',
+        'business_page', 
+        'telephone', 
+        'street', 
+        'locality', 
+        'region', 
+        'zipcode', 
+        'category', 
+        'website', 
+        'rating',
+        'listing_url'
+    ]
     print(f"Writing scraped data to {output_file}")
     with open(output_file, 'wb') as csvfile:
-        fieldnames = [
-            'business_name',
-            'business_page', 
-            'telephone', 
-            'street', 
-            'locality', 
-            'region', 
-            'zipcode', 
-            'category', 
-            'website', 
-            'rating',
-            'listing_url'
-        ]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, quoting=csv.QUOTE_ALL)
         writer.writeheader()
         for data in scraped_data:
