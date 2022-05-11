@@ -25,7 +25,7 @@ def parse_listing(url):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36'
     }
     # Adding retries
-    for retry in range(10):
+    for retry in range(5):
         try:
             response = requests.get(url, verify=False, headers=headers)
             print("parsing page")
@@ -110,32 +110,36 @@ def helper(field: str) -> str:
 
 
 if __name__ == "__main__":
+    pagenum_upper = 100
 
-    keyword = 'restaurants'
+    keyword = 'Restaurants'
     place = 'Edmonton AB'
-    pagenum = 1
+    scraped_data = []
+    for pagenum in range(pagenum_upper):
+        url = f"https://www.yellowpages.ca/search/si/{pagenum}/{helper(keyword)}/{helper(place)}"
+        res = parse_listing(url)
+        if res:
+            scraped_data.append(res)
+        else:
+            break
 
-    url = f"https://www.yellowpages.ca/search/si/{pagenum}/{helper(keyword)}/{helper(place)}"
-    scraped_data = parse_listing(url)
-
-    if scraped_data:
-        output_file = f'{keyword}_{place}_yellowpages-scraped-data.csv'
-        print(f"Writing scraped data to {output_file}")
-        with open(output_file, 'wb') as csvfile:
-            fieldnames = [
-                'business_name',
-                'business_page', 
-                'telephone', 
-                'street', 
-                'locality', 
-                'region', 
-                'zipcode', 
-                'category', 
-                'website', 
-                'rating',
-                'listing_url'
-            ]
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames, quoting=csv.QUOTE_ALL)
-            writer.writeheader()
-            for data in scraped_data:
-                writer.writerow(data)
+    output_file = f'{keyword}_{place}_yellowpages_scraped_data.csv'
+    print(f"Writing scraped data to {output_file}")
+    with open(output_file, 'wb') as csvfile:
+        fieldnames = [
+            'business_name',
+            'business_page', 
+            'telephone', 
+            'street', 
+            'locality', 
+            'region', 
+            'zipcode', 
+            'category', 
+            'website', 
+            'rating',
+            'listing_url'
+        ]
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames, quoting=csv.QUOTE_ALL)
+        writer.writeheader()
+        for data in scraped_data:
+            writer.writerow(data)
