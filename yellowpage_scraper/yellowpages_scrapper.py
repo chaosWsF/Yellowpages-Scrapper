@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import requests
-from lxml import html
+import json
 import unicodecsv as csv
+from lxml import html
 
 
 def parse_listing(url):
@@ -104,7 +105,7 @@ def helper(field: str) -> str:
         """
         convert the field into an appropriate form
         """
-        tmp = s.strip().split(' ')
+        tmp = field.strip().split(' ')
         return '+'.join(tmp)
 
 
@@ -118,12 +119,12 @@ if __name__ == "__main__":
     scraped_data = parse_listing(url)
 
     if scraped_data:
-        print("Writing scraped data to %s-%s-yellowpages-scraped-data.csv" % (keyword, place))
-        # TODO: change to JSON format
-        with open('%s-%s-yellowpages-scraped-data.csv' % (keyword, place), 'wb') as csvfile:
+        output_file = f'{keyword}_{place}_yellowpages-scraped-data.csv'
+        print(f"Writing scraped data to {output_file}")
+        with open(output_file, 'wb') as csvfile:
             fieldnames = [
                 'business_name',
-                'business_page',  
+                'business_page', 
                 'telephone', 
                 'street', 
                 'locality', 
