@@ -3,6 +3,7 @@
 
 import requests
 import json
+import time
 import unicodecsv as csv
 from lxml import html
 
@@ -92,13 +93,13 @@ def parse_listing(url):
 
             elif response.status_code == 404:    # no need to retry for non existing page
                 print("Could not find a location matching")
-                return []
+                return 
             else:
                 print(f"Failed to process page, response error, retry {retry+1}")
 
         except:
             print("Failed to process page")
-            return []
+            return 
 
 
 def helper(field: str) -> str:
@@ -115,11 +116,14 @@ if __name__ == "__main__":
     keyword = 'Restaurants'
     place = 'Edmonton AB'
     scraped_data = []
-    for pagenum in range(pagenum_upper):
+    for pagenum in range(1, pagenum_upper+1):
+        if (pagenum > 9) and (pagenum % 10 == 0):
+            time.sleep(5)
+        
         url = f"https://www.yellowpages.ca/search/si/{pagenum}/{helper(keyword)}/{helper(place)}"
         res = parse_listing(url)
         if res:
-            scraped_data.append(res)
+            scraped_data.extend(res)
         else:
             break
 
