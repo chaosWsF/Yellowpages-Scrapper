@@ -3,8 +3,8 @@
 
 import requests
 import time
+import unicodecsv as csv
 from lxml import html
-from unicodecsv import csv
 
 
 def parse_listing(url):
@@ -26,7 +26,7 @@ def parse_listing(url):
     }
     for retry in range(5):    # Adding retries
         try:
-            response = requests.get(url, verify=False, headers=headers)    # FIXME warnings about verification
+            response = requests.get(url, verify=True, headers=headers)
             print("Parsing page")
 
             if response.status_code == 200:
@@ -48,7 +48,7 @@ def parse_listing(url):
                     XPATH_REGION = ".//span[@itemprop='addressRegion']//text()"
                     XPATH_ZIP_CODE = ".//span[@itemprop='postalCode']//text()"
                     XPATH_CATEGORIES = ".//div[@class='listing__captext']//text()"
-                    XPATH_WEBSITE = ".//a[@class='mlr__item__cta']//@href"    # TODO: get a redirect term
+                    XPATH_WEBSITE = ".//a[@class='mlr__item__cta']//@href"
                     XPATH_RATING = ".//div[@class='listing__rating ratingWarp']//span//@data-rating"    # TODO: two rating
 
                     raw_business_name = results.xpath(XPATH_BUSINESS_NAME)
@@ -143,6 +143,6 @@ if __name__ == "__main__":
     print(f"Writing scraped data to {output_file}")
     with open(output_file, 'wb') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, quoting=csv.QUOTE_ALL)
-        writer.writeheader()
+        # writer.writeheader()
         for data in scraped_data:
             writer.writerow(data)
