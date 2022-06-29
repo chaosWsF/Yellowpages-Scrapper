@@ -114,7 +114,7 @@ def helper(field: str) -> str:
 
 
 if __name__ == "__main__":
-    pagenum_upper = 40    # 100-150 can be appropriate
+    pagenum_upper = 120    # 100-150 can be appropriate
 
     keyword = 'Restaurants'
     place = 'Edmonton AB'
