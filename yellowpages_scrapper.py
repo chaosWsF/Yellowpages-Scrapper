@@ -27,7 +27,7 @@ def parse_listing(url, keyword):
     for retry in range(5):    # Adding retries
         try:
             response = requests.get(url, verify=True, headers=headers)
-            print("Parsing page")
+            # print("Parsing page")
 
             if response.status_code == 200:
                 parser = html.fromstring(response.text)
@@ -114,14 +114,15 @@ def helper(field: str) -> str:
 
 
 if __name__ == "__main__":
-    pagenum_upper = 20    # 100-150 can be appropriate
+    pagenum_upper = 40    # 100-150 can be appropriate
 
     keyword = 'Restaurants'
     place = 'Edmonton AB'
     scraped_data = []
     for pagenum in range(1, pagenum_upper+1):
-        # if (pagenum > 9) and (pagenum % 10 == 0):
-        #     time.sleep(5)    # FIXME find a good delay
+        if (pagenum > 1) and (pagenum % 20 == 1):
+            print('Sleeping 1 minute')
+            time.sleep(60)
         
         url = f"https://www.yellowpages.ca/search/si/{pagenum}/{helper(keyword)}/{helper(place)}"
         res = parse_listing(url, keyword)
