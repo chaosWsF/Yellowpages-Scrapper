@@ -71,7 +71,7 @@ def parse_listing(url, keyword):
                     locality = ''.join(raw_locality).strip() if raw_locality else None
                     region = ''.join(raw_region).strip() if raw_region else None
                     zipcode = ''.join(raw_zip_code).strip() if raw_zip_code else None
-                    category = (keyword + ',' + ','.join(raw_categories).strip()) if raw_categories else keyword
+                    category = (keyword + ', ' + ','.join(raw_categories).strip()) if raw_categories else keyword
                     website = ''.join(raw_website).strip() if raw_website else None
                     rating = ''.join(raw_rating).replace("rating", "").strip() if raw_rating else None
                     rating_img = ''.join(raw_rating_img).strip().split('/')[-1].split('-')[0] if raw_rating_img else None
@@ -114,7 +114,7 @@ def helper(field: str) -> str:
 
 
 if __name__ == "__main__":
-    pagenum_upper = 5    # 100-150 can be appropriate
+    pagenum_upper = 20    # 100-150 can be appropriate
 
     keyword = 'Restaurants'
     place = 'Edmonton AB'
@@ -148,6 +148,6 @@ if __name__ == "__main__":
     print(f"Writing scraped data to {output_file}")
     with open(output_file, 'wb') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, quoting=csv.QUOTE_ALL)
-        # writer.writeheader()
+        writer.writeheader()
         for data in scraped_data:
             writer.writerow(data)
